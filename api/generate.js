@@ -1,11 +1,15 @@
-module.exports = (req, res) => {
-  const colors = (req.query.colors ? req.query.colors : "#d1d8e0")
+const blobshape = require("blobshape");
+const screenshot = require("./screenshot");
+
+exports.handler = async (event, context) => {
+  const query = event.queryStringParameters;
+  const colors = (query.colors ? query.colors : "#d1d8e0")
     .split("|")
     .map((x) => `#${x}`);
-  const growth = req.query.growth && Number(req.query.growth);
-  const edges = req.query.edges && Number(req.query.edges);
-  const seed = req.query.seed && Number(req.query.seed);
-  const stroke = req.query.stroke;
+  const growth = query.growth && Number(query.growth);
+  const edges = query.edges && Number(query.edges);
+  const seed = query.seed && Number(query.seed);
+  const stroke = query.stroke;
   const size = 500;
 
   const getPathData = () => {
@@ -143,6 +147,12 @@ module.exports = (req, res) => {
   };
 
   const image = await screenshot(getHtml(getBlob()));
-  res.writeHead(200, { "Content-Type": "image/png" });
-  res.end(image, "binary");
+  return {
+    statusCode: 200,
+    headers: {
+      "Content-type": "image/png",
+    },
+    body: image.toString("base64"),
+    isBase64Encoded: true,
+  };
 };
